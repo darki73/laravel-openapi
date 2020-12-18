@@ -1,0 +1,38 @@
+{
+    "name": "freedomcore/laravel-openapi",
+    "description": "OpenAPI documentation generator for Laravel",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Zhivolupov Ivan",
+            "email": "ivan.zhivolupov@freedomcore.ru",
+            "homepage": "https://freedomcore.ru"
+        }
+    ],
+    "require": {
+        "php": "^8.0",
+        "phpdocumentor/reflection-docblock": "^5.2.2"
+    },
+    "require-dev": {},
+    "autoload": {
+        "psr-4": {
+            "FreedomCore\\OpenAPI\\": "src"
+        },
+        "files": [
+            "src/helpers.php"
+        ]
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "FreedomCore\\OpenAPI\\Providers\\OpenAPIServiceProvider"
+            ]
+        }
+    },
+    "suggest": {
+        "ext-yaml": "Required to generate YAML"
+    }
+}
