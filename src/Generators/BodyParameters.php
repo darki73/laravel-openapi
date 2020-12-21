@@ -19,6 +19,12 @@ class BodyParameters extends AbstractGenerator {
     private array $rules;
 
     /**
+     * Attributes array
+     * @var array
+     */
+    private array $attributes;
+
+    /**
      * Parameters location
      * @var string
      */
@@ -28,11 +34,13 @@ class BodyParameters extends AbstractGenerator {
      * BodyParameters constructor.
      * @param string $uri
      * @param array $rules
+     * @param array $attributes
      * @param ReflectionMethod $methodInstance
      */
-    public function __construct(string $uri, array $rules, ReflectionMethod $methodInstance) {
+    public function __construct(string $uri, array $rules, array $attributes, ReflectionMethod $methodInstance) {
         $this->uri = $uri;
         $this->rules = $rules;
+        $this->attributes = $attributes;
         $this->method = $methodInstance;
     }
 

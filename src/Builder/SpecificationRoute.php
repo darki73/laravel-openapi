@@ -1,6 +1,7 @@
 <?php namespace FreedomCore\OpenAPI\Builder;
 
 use Exception;
+use ReflectionClass;
 use ReflectionMethod;
 use ReflectionException;
 use Illuminate\Support\Arr;
@@ -195,12 +196,13 @@ class SpecificationRoute {
      * @param string $method
      * @param ReflectionMethod $instance
      * @return array
+     * @throws ReflectionException
      */
     private function parseMethodParameters(array $documentation, string $method, ReflectionMethod $instance): array {
-        $rules = $this->retrieveFormRules($instance);
+        [$attributes, $rules] = $this->retrieveFormRules($instance);
         $pathParameters = (new PathParameters($this->route->originalUri(), $instance))->parameters();
-        $queryParameters = (new QueryParameters($this->route->originalUri(), $rules, $instance))->parameters();
-        $bodyParameters = (new BodyParameters($this->route->originalUri(), $rules, $instance))->parameters();
+        $queryParameters = (new QueryParameters($this->route->originalUri(), $rules, $attributes, $instance))->parameters();
+        $bodyParameters = (new BodyParameters($this->route->originalUri(), $rules, $attributes, $instance))->parameters();
 
         if (!empty($bodyParameters) && in_array($method, ['post', 'put', 'patch'])) {
             Arr::set($documentation, 'requestBody', $bodyParameters);
@@ -263,6 +265,7 @@ class SpecificationRoute {
      * Retrieve form rules
      * @param ReflectionMethod $instance
      * @return array
+     * @throws ReflectionException
      */
     private function retrieveFormRules(ReflectionMethod $instance): array {
         $parameters = $instance->getParameters();
@@ -273,12 +276,27 @@ class SpecificationRoute {
                 if (method_exists($type, 'getName')) {
                     $typeClass = $type->getName();
                     if (is_subclass_of($typeClass, FormRequest::class)) {
-                        return (new $typeClass)->rules();
+                        $attributes = [];
+                        if (Str::endsWith($type, 'LocalizedRequest')) {
+                            $reflectionClass = new ReflectionClass($typeClass);
+                            $classAttributes = $reflectionClass->getAttributes();
+                            foreach ($classAttributes as $attribute) {
+                                $attributeInstance = $attribute->newInstance();
+                                $attributes = array_merge_recursive($attributes, $attributeInstance->toArray());
+                            }
+                        }
+                        return [
+                            $attributes,
+                            (new $typeClass)->rules()
+                        ];
                     }
                 }
             }
         }
-        return [];
+        return [
+            [],
+            []
+        ];
     }
 
     /**

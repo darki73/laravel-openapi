@@ -18,6 +18,12 @@ class QueryParameters extends AbstractGenerator {
     private array $rules;
 
     /**
+     * Attributes array
+     * @var array
+     */
+    private array $attributes;
+
+    /**
      * Parameters location
      * @var string
      */
@@ -27,11 +33,13 @@ class QueryParameters extends AbstractGenerator {
      * QueryParameters constructor.
      * @param string $uri
      * @param array $rules
+     * @param array $attributes
      * @param ReflectionMethod $methodInstance
      */
-    public function __construct(string $uri, array $rules, ReflectionMethod $methodInstance) {
+    public function __construct(string $uri, array $rules, array $attributes, ReflectionMethod $methodInstance) {
         $this->uri = $uri;
         $this->rules = $rules;
+        $this->attributes = $attributes;
         $this->method = $methodInstance;
     }
 
@@ -46,7 +54,6 @@ class QueryParameters extends AbstractGenerator {
             $parameterRules = $this->splitRules($rule);
             $enums = $this->getEnumValues($parameterRules);
             $type = $this->getParameterType($parameterRules);
-            $default = $this->getDefaultValue($parameterRules);
 
             if ($this->isArrayParameter($parameter)) {
                 $key = $this->getArrayKey($parameter);
@@ -61,16 +68,13 @@ class QueryParameters extends AbstractGenerator {
                 'required'      =>  $this->isParameterRequired($parameterRules)
             ];
 
+            Arr::set($parameterObject, 'schema.type', $type);
             if (\count($enums) > 0) {
-                Arr::set($parameterObject, 'enum', $enums);
-            } else {
-                Arr::set($parameterObject, 'schema.type', $type);
+                Arr::set($parameterObject, 'schema.enum', $enums);
             }
 
-            if ($default) {
-                settype($default, $type);
-                Arr::set($parameterObject, 'schema.default', $default);
-            }
+            $this->updateDefaultValues($parameterObject, $parameter);
+            $this->updateRangeValues($parameterObject, $parameter);
 
             if ($type === 'array') {
                 Arr::set($parameterObject, 'items', [
@@ -109,6 +113,45 @@ class QueryParameters extends AbstractGenerator {
             }
         }
         return $parameters;
+    }
+
+    /**
+     * Update parameter default value
+     * @param array $parameterObject
+     * @param string $parameter
+     */
+    private function updateDefaultValues(array & $parameterObject, string $parameter): void {
+        if (!empty($this->attributes)) {
+            if (Arr::has($this->attributes, 'default')) {
+                $defaults = Arr::get($this->attributes, 'default');
+                if (Arr::has($defaults, $parameter)) {
+                    $parameterData = Arr::get($defaults, $parameter);
+                    Arr::set($parameterObject, 'schema.type', Arr::get($parameterData, 'type'));
+                    Arr::set($parameterObject, 'schema.default', Arr::get($parameterData, 'default'));
+                }
+            }
+        }
+    }
+
+    /**
+     * Update range values
+     * @param array $parameterObject
+     * @param string $parameter
+     */
+    private function updateRangeValues(array & $parameterObject, string $parameter): void {
+        if (!empty($this->attributes)) {
+            $ranges = ['minimum', 'maximum', 'minLength', 'maxLength'];
+            foreach ($ranges as $range) {
+                if (Arr::has($this->attributes, $range)) {
+                    $rangeData = Arr::get($this->attributes, $range);
+                    if (Arr::has($rangeData, $parameter)) {
+                        $parameterData = Arr::get($rangeData, $parameter);
+                        Arr::set($parameterObject, 'schema.type', Arr::get($parameterData, 'type'));
+                        Arr::set($parameterObject, 'schema.' . $range, Arr::get($parameterData, 'value'));
+                    }
+                }
+            }
+        }
     }
 
 }
