@@ -22,13 +22,21 @@ class Maximum {
     public int $maximum;
 
     /**
+     * Attribute default value
+     * @var int
+     */
+    public int $default;
+
+    /**
      * Defaults constructor.
      * @param string $attribute
      * @param int $maximum
+     * @param int|null $default
      */
-    public function __construct(string $attribute, int $maximum) {
+    public function __construct(string $attribute, int $maximum, ?int $default = null) {
         $this->attribute = $attribute;
         $this->maximum = $maximum;
+        $this->default = $default ?: $maximum;
     }
 
     public function toArray(): array {
@@ -36,6 +44,7 @@ class Maximum {
             'maximum'                   =>  [
                 $this->attribute        =>  [
                     'type'              =>  'integer',
+                    'default'           =>  $this->default,
                     'value'             =>  $this->maximum
                 ]
             ]

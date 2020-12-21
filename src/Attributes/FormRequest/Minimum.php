@@ -22,13 +22,21 @@ class Minimum {
     public int $minimum;
 
     /**
+     * Attribute default value
+     * @var int
+     */
+    public int $default;
+
+    /**
      * Defaults constructor.
      * @param string $attribute
      * @param int $minimum
+     * @param int|null $default
      */
-    public function __construct(string $attribute, int $minimum) {
+    public function __construct(string $attribute, int $minimum, ?int $default = null) {
         $this->attribute = $attribute;
         $this->minimum = $minimum;
+        $this->default = $default ?: $minimum;
     }
 
     public function toArray(): array {
@@ -36,6 +44,7 @@ class Minimum {
             'minimum'                   =>  [
                 $this->attribute        =>  [
                     'type'              =>  'integer',
+                    'default'           =>  $this->default,
                     'value'             =>  $this->minimum
                 ]
             ]

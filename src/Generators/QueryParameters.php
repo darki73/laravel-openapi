@@ -148,6 +148,9 @@ class QueryParameters extends AbstractGenerator {
                         $parameterData = Arr::get($rangeData, $parameter);
                         Arr::set($parameterObject, 'schema.type', Arr::get($parameterData, 'type'));
                         Arr::set($parameterObject, 'schema.' . $range, Arr::get($parameterData, 'value'));
+                        if (Arr::has($parameterData, 'default')) {
+                            Arr::set($parameterObject, 'schema.default', Arr::get($parameterData, 'default'));
+                        }
                     }
                 }
             }

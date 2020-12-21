@@ -277,13 +277,11 @@ class SpecificationRoute {
                     $typeClass = $type->getName();
                     if (is_subclass_of($typeClass, FormRequest::class)) {
                         $attributes = [];
-                        if (Str::endsWith($type, 'LocalizedRequest')) {
-                            $reflectionClass = new ReflectionClass($typeClass);
-                            $classAttributes = $reflectionClass->getAttributes();
-                            foreach ($classAttributes as $attribute) {
-                                $attributeInstance = $attribute->newInstance();
-                                $attributes = array_merge_recursive($attributes, $attributeInstance->toArray());
-                            }
+                        $reflectionClass = new ReflectionClass($typeClass);
+                        $classAttributes = $reflectionClass->getAttributes();
+                        foreach ($classAttributes as $attribute) {
+                            $attributeInstance = $attribute->newInstance();
+                            $attributes = array_merge_recursive($attributes, $attributeInstance->toArray());
                         }
                         return [
                             $attributes,
